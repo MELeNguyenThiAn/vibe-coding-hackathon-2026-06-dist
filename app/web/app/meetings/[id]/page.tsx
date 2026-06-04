@@ -12,6 +12,8 @@ export default function MeetingDetailPage() {
   const id = params.id as string
   const [meeting, setMeeting] = useState<Meeting | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchMeeting(id)
@@ -20,8 +22,15 @@ export default function MeetingDetailPage() {
   }, [id])
 
   async function handleDelete() {
-    await deleteMeeting(id)
-    router.push('/')
+    setDeleting(true)
+    try {
+      await deleteMeeting(id)
+      router.push('/')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to delete meeting')
+      setDeleting(false)
+      setConfirmingDelete(false)
+    }
   }
 
   if (error) return <div className="text-red-600">Error: {error}</div>
@@ -39,17 +48,70 @@ export default function MeetingDetailPage() {
             Edit
           </Link>
           <button
-            onClick={handleDelete}
+            onClick={() => setConfirmingDelete(true)}
             className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700"
           >
             Delete
           </button>
         </div>
       </div>
-      <div className="text-sm text-gray-500 mb-6">
-        {formatDate(meeting.meetingDate)}
+      <div className="mb-6 space-y-2">
+        <div className="text-sm text-gray-500">
+          {formatDate(meeting.meetingDate)}
+        </div>
+        {meeting.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {meeting.tags.map((t) => (
+              <span
+                key={t}
+                className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full"
+              >
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       <div className="whitespace-pre-wrap">{meeting.body}</div>
+
+      {confirmingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-dialog-title"
+          onClick={() => !deleting && setConfirmingDelete(false)}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="delete-dialog-title" className="text-lg font-semibold mb-2">
+              Delete this meeting?
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              &ldquo;{meeting.title}&rdquo; will be permanently deleted. This
+              action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmingDelete(false)}
+                disabled={deleting}
+                className="px-3 py-1.5 border rounded hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

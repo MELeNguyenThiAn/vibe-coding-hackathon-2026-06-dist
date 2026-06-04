@@ -12,6 +12,7 @@ model Meeting {
   title       String
   body        String
   meetingDate DateTime
+  tags        String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

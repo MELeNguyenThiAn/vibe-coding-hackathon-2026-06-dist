@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { fetchMeeting, updateMeeting } from '@/lib/api'
+import { fetchMeeting, updateMeeting, parseTags } from '@/lib/api'
 
 export default function EditMeetingPage() {
   const router = useRouter()
@@ -10,6 +10,7 @@ export default function EditMeetingPage() {
   const id = params.id as string
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [tags, setTags] = useState('')
   const [meetingDate, setMeetingDate] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -18,6 +19,7 @@ export default function EditMeetingPage() {
     fetchMeeting(id).then((m) => {
       setTitle(m.title)
       setBody(m.body)
+      setTags(m.tags.join(', '))
       setMeetingDate(m.meetingDate.slice(0, 10))
       setLoaded(true)
     })
@@ -31,6 +33,7 @@ export default function EditMeetingPage() {
         title,
         body,
         meetingDate: new Date(meetingDate).toISOString(),
+        tags: parseTags(tags),
       })
       router.push(`/meetings/${id}`)
     } catch (err) {
@@ -63,6 +66,18 @@ export default function EditMeetingPage() {
           value={meetingDate}
           onChange={(e) => setMeetingDate(e.target.value)}
           className="border rounded px-3 py-2"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Tags <span className="text-gray-400">(comma-separated)</span>
+        </label>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="e.g. acme, kickoff, q2"
+          className="w-full border rounded px-3 py-2"
         />
       </div>
       <div>

@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createMeeting } from '@/lib/api'
+import { createMeeting, parseTags } from '@/lib/api'
 
 export default function NewMeetingPage() {
   const router = useRouter()
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
+  const [tags, setTags] = useState('')
   const [meetingDate, setMeetingDate] = useState(
     new Date().toISOString().slice(0, 10)
   )
@@ -21,6 +22,7 @@ export default function NewMeetingPage() {
         title,
         body,
         meetingDate: new Date(meetingDate).toISOString(),
+        tags: parseTags(tags),
       })
       router.push('/')
     } catch (err) {
@@ -51,6 +53,18 @@ export default function NewMeetingPage() {
           value={meetingDate}
           onChange={(e) => setMeetingDate(e.target.value)}
           className="border rounded px-3 py-2"
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium mb-1">
+          Tags <span className="text-gray-400">(comma-separated)</span>
+        </label>
+        <input
+          type="text"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="e.g. acme, kickoff, q2"
+          className="w-full border rounded px-3 py-2"
         />
       </div>
       <div>
