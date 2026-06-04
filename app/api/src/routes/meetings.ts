@@ -38,8 +38,13 @@ router.get('/:id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  // TODO: validate input
   const { title, body, meetingDate, tags } = req.body
+  if (typeof title !== 'string' || title.trim() === '') {
+    return res.status(400).json({ error: 'title is required' })
+  }
+  if (!meetingDate || isNaN(new Date(meetingDate).getTime())) {
+    return res.status(400).json({ error: 'meetingDate is invalid' })
+  }
   const meeting = await prisma.meeting.create({
     data: {
       title,
@@ -53,6 +58,12 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const { title, body, meetingDate, tags } = req.body
+  if (title !== undefined && (typeof title !== 'string' || title.trim() === '')) {
+    return res.status(400).json({ error: 'title must not be empty' })
+  }
+  if (meetingDate !== undefined && isNaN(new Date(meetingDate).getTime())) {
+    return res.status(400).json({ error: 'meetingDate is invalid' })
+  }
   const meeting = await prisma.meeting.update({
     where: { id: req.params.id },
     data: {
